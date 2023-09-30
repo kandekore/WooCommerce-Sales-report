@@ -1,5 +1,18 @@
 # WooCommerce Monthly Sales Report
 
+## Table of Contents
+
+1. [Description](#description)
+2. [Features](#features)
+3. [Installation](#installation)
+4. [Usage](#usage)
+5. [Screenshots](#screenshots)
+6. [Frequently Asked Questions](#frequently-asked-questions)
+7. [Changelog](#changelog)
+8. [Author](#author)
+9. [Support](#support)
+10. [License](#license)
+
 ## Description
 
 WooCommerce Monthly Sales Report is a WordPress plugin that allows administrators to generate and view a monthly sales report. The report includes details such as customer name, product, payment details, order total, and shipping costs. Administrators can also filter reports by month and year to view specific data and print off the report directly from the admin page.
