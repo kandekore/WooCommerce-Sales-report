@@ -6,12 +6,11 @@
 2. [Features](#features)
 3. [Installation](#installation)
 4. [Usage](#usage)
-5. [Screenshots](#screenshots)
-6. [Frequently Asked Questions](#frequently-asked-questions)
-7. [Changelog](#changelog)
-8. [Author](#author)
-9. [Support](#support)
-10. [License](#license)
+5. [Frequently Asked Questions](#frequently-asked-questions)
+6. [Changelog](#changelog)
+7. [Author](#author)
+8. [Support](#support)
+9. [License](#license)
 
 ## Description
 
