@@ -92,11 +92,14 @@ function wcmr_display_report() {
             <th class='manage-column'>Payment Details</th>
             <th class='manage-column'>Order Total</th>
             <th class='manage-column'>Shipping Costs</th>
+            <th class='manage-column'>Fees</th> 
+
           </tr></thead>";
     echo "<tbody>";
 
     $grand_order_total = 0;
     $grand_shipping_total = 0;
+       $grand_fees_total = 0; 
 
     foreach ($orders as $order_id) {
         $order = wc_get_order($order_id);
@@ -112,10 +115,17 @@ function wcmr_display_report() {
                  // Add order total and shipping costs to grand totals.
             $grand_order_total += $order->get_total();
             $grand_shipping_total += $order->get_shipping_total();
+            
+              // Fetch and display fees (assumes metadata keys are _stripe_fee and _paypal_fee).
+            $stripe_fee = get_post_meta($order_id, '_stripe_fee', true);
+            $paypal_fee = get_post_meta($order_id, 'PayPal Transaction Fee', true);
+            $fees = $stripe_fee + $paypal_fee;
+            $grand_fees_total += $fees; // Add to grand total fees
 
             // Display order total and shipping costs for each order.
             echo "<td>" . wc_price($order->get_total()) . "</td>";
             echo "<td>" . wc_price($order->get_shipping_total()) . "</td>";
+              echo "<td>" . wc_price($fees) . "</td>";
             echo "</tr>";
         }
     }
@@ -124,6 +134,7 @@ function wcmr_display_report() {
     echo "<tr><td colspan='5'>Grand Total</td>";
     echo "<td>" . wc_price($grand_order_total) . "</td>";
     echo "<td>" . wc_price($grand_shipping_total) . "</td>";
+     echo "<td>" . wc_price($grand_fees_total) . "</td>";
     echo "</tr>";
 
     echo "</table>";
