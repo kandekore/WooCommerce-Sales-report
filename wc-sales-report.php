@@ -38,7 +38,28 @@ function wcmr_get_sales_data($month = null, $year = null, $product_id = null, $c
     return $query->posts;
 }
 
+function wcmr_get_unique_payment_methods() {
+    $args = array(
+        'post_type' => 'shop_order',
+        'post_status' => 'wc-completed',
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+    );
 
+    $query = new WP_Query($args);
+    $orders = $query->posts;
+    $payment_methods = array();
+
+    foreach ($orders as $order_id) {
+        $order = wc_get_order($order_id);
+        $method_title = $order->get_payment_method_title();
+        $method_id = $order->get_payment_method();
+        $payment_methods[$method_id] = $method_title;
+    }
+
+    // Return the unique payment methods
+    return $payment_methods;
+}
 function wcmr_display_report() {
     if (!current_user_can('manage_options')) {
         return;
@@ -78,6 +99,7 @@ function wcmr_display_report() {
         echo "<option value='$i'>$i</option>";
     }
     echo '</select>';
+    
     echo ' <input type="submit" value="Filter" />';
     echo '</form>';
 
@@ -101,34 +123,38 @@ function wcmr_display_report() {
     $grand_shipping_total = 0;
        $grand_fees_total = 0; 
 
-    foreach ($orders as $order_id) {
-        $order = wc_get_order($order_id);
-        $items = $order->get_items();
-        
-        foreach ($items as $item) {
-            echo "<tr>";
-            echo "<td><a href='" . admin_url('post.php?post=' . absint($order_id) . '&action=edit') . "'>{$order_id}</a></td>";
-            echo "<td>" . date_i18n(get_option('date_format'), strtotime($order->get_date_created())) . "</td>";
-            echo "<td>{$order->get_billing_first_name()} {$order->get_billing_last_name()}</td>";
-            echo "<td>{$item->get_name()}</td>";
-            echo "<td>{$order->get_payment_method_title()}</td>";
-                 // Add order total and shipping costs to grand totals.
-            $grand_order_total += $order->get_total();
-            $grand_shipping_total += $order->get_shipping_total();
-            
-              // Fetch and display fees (assumes metadata keys are _stripe_fee and _paypal_fee).
-            $stripe_fee = get_post_meta($order_id, '_stripe_fee', true);
-            $paypal_fee = get_post_meta($order_id, 'PayPal Transaction Fee', true);
-            $fees = $stripe_fee + $paypal_fee;
-            $grand_fees_total += $fees; // Add to grand total fees
+foreach ($orders as $order_id) {
+    $order = wc_get_order($order_id);
+    $items = $order->get_items();
 
-            // Display order total and shipping costs for each order.
-            echo "<td>" . wc_price($order->get_total()) . "</td>";
-            echo "<td>" . wc_price($order->get_shipping_total()) . "</td>";
-              echo "<td>" . wc_price($fees) . "</td>";
-            echo "</tr>";
+    $stripe_fee = get_post_meta($order_id, '_stripe_fee', true) ?: 0;  
+    $paypal_fee = get_post_meta($order_id, 'PayPal Transaction Fee', true) ?: 0;  
+    $fees = $stripe_fee + $paypal_fee;
+    $grand_fees_total += $fees;
+
+    $grand_order_total += $order->get_total();
+    $grand_shipping_total += $order->get_shipping_total();
+
+    $firstItem = true;
+    foreach ($items as $item) {
+        echo "<tr>";
+        
+        if ($firstItem) {
+            echo "<td rowspan='" . count($items) . "'><a href='" . admin_url('post.php?post=' . absint($order_id) . '&action=edit') . "'>{$order_id}</a></td>";
+            echo "<td rowspan='" . count($items) . "'>" . date_i18n(get_option('date_format'), strtotime($order->get_date_created())) . "</td>";
+            echo "<td rowspan='" . count($items) . "'>{$order->get_billing_first_name()} {$order->get_billing_last_name()}</td>";
+            echo "<td>{$item->get_name()}</td>";
+            echo "<td rowspan='" . count($items) . "'>{$order->get_payment_method_title()}</td>";
+            echo "<td rowspan='" . count($items) . "'>" . wc_price($order->get_total()) . "</td>";
+            echo "<td rowspan='" . count($items) . "'>" . wc_price($order->get_shipping_total()) . "</td>";
+            echo "<td rowspan='" . count($items) . "'>" . wc_price($fees) . "</td>";
+            $firstItem = false;
+        } else {
+            echo "<td>{$item->get_name()}</td>";
+            echo "</tr>";  // End the row if it's not the first item
         }
     }
+}
 
       // Display grand totals.
     echo "<tr><td colspan='5'>Grand Total</td>";
